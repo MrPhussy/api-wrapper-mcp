@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
-	"text/template"
 	"time"
 
 	"github.com/gomcpgo/api_wrapper/config"
@@ -46,7 +44,7 @@ func (h *APIToolHandler) executeAPICall(ctx context.Context, toolCfg *config.Too
 		query := reqURL.Query()
 		for key, tmplVal := range toolCfg.QueryParams {
 			// Process template values in query params
-			val, err := h.processTemplate(tmplVal, args)
+			val, err := h.processTemplateRegex(tmplVal, args)
 			if err != nil {
 				return "", fmt.Errorf("failed to process query parameter '%s': %w", key, err)
 			}
@@ -61,7 +59,7 @@ func (h *APIToolHandler) executeAPICall(ctx context.Context, toolCfg *config.Too
 
 	case "POST":
 		// Process the JSON template for POST request
-		jsonBody, err := h.processTemplate(toolCfg.Template, args)
+		jsonBody, err := h.processTemplateRegex(toolCfg.Template, args)
 		if err != nil {
 			return "", fmt.Errorf("failed to process request template: %w", err)
 		}
@@ -89,7 +87,7 @@ func (h *APIToolHandler) executeAPICall(ctx context.Context, toolCfg *config.Too
 	defer resp.Body.Close()
 
 	// Read response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
@@ -101,38 +99,4 @@ func (h *APIToolHandler) executeAPICall(ctx context.Context, toolCfg *config.Too
 
 	// For successful responses, return the body as-is
 	return string(body), nil
-}
-
-// processTemplate processes a template string with the given arguments
-func (h *APIToolHandler) processTemplate(tmplStr string, args map[string]interface{}) (string, error) {
-	// Simple template processor for {{variable}} replacement
-	tmpl, err := template.New("").Delims("{{", "}}").Parse(tmplStr)
-	if err != nil {
-		return "", fmt.Errorf("invalid template: %w", err)
-	}
-
-	// Special handling for {{env:VARIABLE}} syntax
-	// Create a copy of args to avoid modifying the original
-	processedArgs := make(map[string]interface{})
-	for k, v := range args {
-		processedArgs[k] = v
-	}
-
-	// Process env vars in the template
-	for k, v := range processedArgs {
-		if strVal, ok := v.(string); ok {
-			if strings.HasPrefix(strVal, "{{env:") && strings.HasSuffix(strVal, "}}") {
-				envVar := strings.TrimPrefix(strings.TrimSuffix(strVal, "}}"), "{{env:")
-				envVal := os.Getenv(envVar)
-				processedArgs[k] = envVal
-			}
-		}
-	}
-
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, processedArgs); err != nil {
-		return "", fmt.Errorf("template execution failed: %w", err)
-	}
-
-	return buf.String(), nil
 }

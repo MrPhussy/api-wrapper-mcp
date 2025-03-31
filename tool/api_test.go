@@ -69,8 +69,8 @@ func TestExecuteAPICallGET(t *testing.T) {
 		Method:      "GET",
 		Timeout:     30,
 		QueryParams: map[string]string{
-			"param1": "{{.value1}}",
-			"param2": "{{.value2}}",
+			"param1": "{{value1}}",
+			"param2": "{{value2}}",
 		},
 		Parameters: map[string]config.ParamConfig{
 			"value1": {
@@ -161,7 +161,7 @@ func TestExecuteAPICallPOST(t *testing.T) {
 		Endpoint:    server.URL + "/api/post",
 		Method:      "POST",
 		Timeout:     30,
-		Template:    `{"key1":"{{.value1}}","key2":{{.value2}},"key3":{{.value3}}}`,
+		Template:    `{"key1":"{{value1}}","key2":{{value2}},"key3":{{value3}}}`,
 		Parameters: map[string]config.ParamConfig{
 			"value1": {
 				Type:        "string",
@@ -241,8 +241,8 @@ func TestExecuteAPICallDefaults(t *testing.T) {
 		Method:      "GET",
 		Timeout:     30,
 		QueryParams: map[string]string{
-			"param1": "{{.value1}}",
-			"param2": "{{.value2}}",
+			"param1": "{{value1}}",
+			"param2": "{{value2}}",
 		},
 		Parameters: map[string]config.ParamConfig{
 			"value1": {
@@ -380,8 +380,8 @@ func TestExecuteAPICallUnsupportedMethod(t *testing.T) {
 	}
 }
 
-// TestProcessTemplate tests the processTemplate function
-func TestProcessTemplate(t *testing.T) {
+// TestProcessTemplateRegex tests the processTemplateRegex function
+func TestProcessTemplateRegex(t *testing.T) {
 	// Create a test configuration
 	cfg := &config.Config{
 		Auth: struct {
@@ -404,55 +404,59 @@ func TestProcessTemplate(t *testing.T) {
 	}{
 		{
 			name:     "Simple template",
-			template: "Hello, {{.name}}!",
+			template: "Hello, {{name}}!",
 			args:     map[string]interface{}{"name": "World"},
 			expected: "Hello, World!",
 			wantErr:  false,
 		},
 		{
 			name:     "JSON template",
-			template: `{"name":"{{.name}}","value":{{.value}}}`,
+			template: `{"name":"{{name}}","value":{{value}}}`,
 			args:     map[string]interface{}{"name": "test", "value": 42},
 			expected: `{"name":"test","value":42}`,
 			wantErr:  false,
 		},
 		{
 			name:     "Template with multiple variables",
-			template: `{{.var1}}-{{.var2}}-{{.var3}}`,
+			template: `{{var1}}-{{var2}}-{{var3}}`,
 			args:     map[string]interface{}{"var1": "a", "var2": "b", "var3": "c"},
 			expected: `a-b-c`,
 			wantErr:  false,
 		},
 		{
 			name:     "Template with missing variable",
-			template: `{{.var1}}-{{.missing}}-{{.var3}}`,
+			template: `{{var1}}-{{missing}}-{{var3}}`,
 			args:     map[string]interface{}{"var1": "a", "var3": "c"},
 			expected: ``,
 			wantErr:  true,
 		},
 		{
-			name:     "Invalid template",
-			template: `{{.var1}-broken`,
-			args:     map[string]interface{}{"var1": "a"},
-			expected: ``,
-			wantErr:  true,
+			name:     "Template with different data types",
+			template: `String: {{string}}, Number: {{number}}, Boolean: {{boolean}}`,
+			args: map[string]interface{}{
+				"string":  "hello",
+				"number":  42,
+				"boolean": true,
+			},
+			expected: `String: hello, Number: 42, Boolean: true`,
+			wantErr:  false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := handler.processTemplate(tc.template, tc.args)
+			result, err := handler.processTemplateRegex(tc.template, tc.args)
 			
 			if tc.wantErr {
 				if err == nil {
-					t.Errorf("processTemplate() expected error, got nil")
+					t.Errorf("processTemplateRegex() expected error, got nil")
 				}
 			} else {
 				if err != nil {
-					t.Errorf("processTemplate() error = %v", err)
+					t.Errorf("processTemplateRegex() error = %v", err)
 				}
 				if result != tc.expected {
-					t.Errorf("processTemplate() = %v, want %v", result, tc.expected)
+					t.Errorf("processTemplateRegex() = %v, want %v", result, tc.expected)
 				}
 			}
 		})
@@ -487,21 +491,21 @@ func TestProcessTemplateWithEnvVars(t *testing.T) {
 	}{
 		{
 			name:     "Template with env var in args",
-			template: `Key: {{.api_key}}`,
+			template: `Key: {{api_key}}`,
 			args:     map[string]interface{}{"api_key": "{{env:TEST_ENV_VAR}}"},
 			expected: `Key: env-value`,
 			wantErr:  false,
 		},
 		{
 			name:     "Template with missing env var",
-			template: `Key: {{.api_key}}`,
+			template: `Key: {{api_key}}`,
 			args:     map[string]interface{}{"api_key": "{{env:MISSING_ENV_VAR}}"},
 			expected: `Key: `,
 			wantErr:  false,
 		},
 		{
 			name:     "Complex template with env var",
-			template: `{"auth":"{{.token}}","data":"{{.value}}"}`,
+			template: `{"auth":"{{token}}","data":"{{value}}"}`,
 			args:     map[string]interface{}{
 				"token": "{{env:TEST_ENV_VAR}}",
 				"value": "test-data",
@@ -509,22 +513,29 @@ func TestProcessTemplateWithEnvVars(t *testing.T) {
 			expected: `{"auth":"env-value","data":"test-data"}`,
 			wantErr:  false,
 		},
+		{
+			name:     "Direct env var in template",
+			template: `API Key: {{env:TEST_ENV_VAR}}`,
+			args:     map[string]interface{}{},
+			expected: `API Key: env-value`,
+			wantErr:  false,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := handler.processTemplate(tc.template, tc.args)
+			result, err := handler.processTemplateRegex(tc.template, tc.args)
 			
 			if tc.wantErr {
 				if err == nil {
-					t.Errorf("processTemplate() expected error, got nil")
+					t.Errorf("processTemplateRegex() expected error, got nil")
 				}
 			} else {
 				if err != nil {
-					t.Errorf("processTemplate() error = %v", err)
+					t.Errorf("processTemplateRegex() error = %v", err)
 				}
 				if result != tc.expected {
-					t.Errorf("processTemplate() = %v, want %v", result, tc.expected)
+					t.Errorf("processTemplateRegex() = %v, want %v", result, tc.expected)
 				}
 			}
 		})
