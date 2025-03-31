@@ -1,0 +1,13 @@
+# Test missing endpoint
+server:
+  name: "Missing Endpoint Test"
+  
+auth:
+  token_env_var: "TEST_API_TOKEN"
+
+tools:
+  - name: "missing-endpoint"
+    description: "Tool with missing endpoint"
+    method: "GET"
+    timeout: 10
+    parameters: {}

@@ -64,20 +64,28 @@ func LoadConfig(filePath string) (*Config, error) {
 	}
 
 	// Validate configuration
+	if err := validateConfig(&cfg); err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+// validateConfig validates the configuration and sets defaults
+func validateConfig(cfg *Config) error {
 	for i, tool := range cfg.Tools {
 		if tool.Name == "" {
-			return nil, fmt.Errorf("tool at index %d has no name", i)
+			return fmt.Errorf("tool at index %d has no name", i)
 		}
 		if tool.Endpoint == "" {
-			return nil, fmt.Errorf("tool '%s' has no endpoint", tool.Name)
+			return fmt.Errorf("tool '%s' has no endpoint", tool.Name)
 		}
 		if tool.Method != "GET" && tool.Method != "POST" {
-			return nil, fmt.Errorf("tool '%s' has unsupported method: %s (must be GET or POST)", tool.Name, tool.Method)
+			return fmt.Errorf("tool '%s' has unsupported method: %s (must be GET or POST)", tool.Name, tool.Method)
 		}
 		if tool.Timeout <= 0 {
 			cfg.Tools[i].Timeout = 30 // Default timeout of 30 seconds
 		}
 	}
-
-	return &cfg, nil
+	return nil
 }

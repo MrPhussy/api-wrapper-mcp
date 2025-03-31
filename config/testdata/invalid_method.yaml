@@ -1,0 +1,15 @@
+# Test invalid HTTP method
+server:
+  name: "Invalid Method Test"
+  
+auth:
+  token_env_var: "TEST_API_TOKEN"
+
+tools:
+  - name: "invalid-method"
+    description: "Tool with invalid HTTP method"
+    endpoint: "https://api.example.com/endpoint"
+    method: "PUT"  # Not supported
+    timeout: 10
+    template: "{}"
+    parameters: {}

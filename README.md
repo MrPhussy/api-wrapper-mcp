@@ -24,6 +24,18 @@ go build -o api_wrapper
 ./api_wrapper my-apis.yaml
 ```
 
+## Testing
+
+Run the tests with:
+
+```bash
+# Run all tests
+go test -v ./...
+
+# Or use the provided script
+./run_tests.sh
+```
+
 ## Configuration Format
 
 The configuration file uses YAML format with the following structure:

@@ -1,0 +1,49 @@
+# Test valid configuration
+server:
+  name: "Test API Gateway"
+  description: "Test API Gateway for unit tests"
+  version: "1.0.0"
+  
+auth:
+  token_env_var: "TEST_API_TOKEN"
+
+tools:
+  - name: "test-get"
+    description: "Test GET API"
+    endpoint: "https://api.example.com/get"
+    method: "GET"
+    timeout: 10
+    query_params:
+      param1: "{{value1}}"
+      param2: "{{value2}}"
+    parameters:
+      value1:
+        type: "string"
+        description: "First value"
+        required: true
+      value2:
+        type: "number"
+        description: "Second value"
+        default: 42
+
+  - name: "test-post"
+    description: "Test POST API"
+    endpoint: "https://api.example.com/post"
+    method: "POST"
+    timeout: 20
+    template: |
+      {
+        "data": "{{data}}",
+        "options": {
+          "flag": {{flag}}
+        }
+      }
+    parameters:
+      data:
+        type: "string"
+        description: "Data to send"
+        required: true
+      flag:
+        type: "boolean"
+        description: "Optional flag"
+        default: false

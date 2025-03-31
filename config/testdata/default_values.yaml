@@ -1,0 +1,13 @@
+# Test default values
+# No server name/version provided - should use defaults
+
+auth:
+  token_env_var: "TEST_API_TOKEN"
+
+tools:
+  - name: "default-timeout"
+    description: "Tool with default timeout"
+    endpoint: "https://api.example.com/endpoint"
+    method: "GET"
+    # No timeout provided - should use default
+    parameters: {}
