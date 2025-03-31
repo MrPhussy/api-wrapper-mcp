@@ -10,18 +10,24 @@ This is a generic API wrapper server for the Model Context Protocol (MCP). It al
 - Authentication via environment variables
 - Custom timeouts for API calls
 
-## Usage
+## Building
 
-1. Create a YAML configuration file defining your API endpoints (see `example-config.yaml`)
-2. Set any required API tokens as environment variables
-3. Run the server with your config file:
+Build the server using:
 
 ```bash
-# Build the server
-go build -o api_wrapper
+# Build using the provided script
+./run.sh build
 
+# The binary will be created in the bin folder
+```
+
+## Running
+
+Run the server with a configuration file:
+
+```bash
 # Run with your config
-./api_wrapper my-apis.yaml
+./bin/api_wrapper my-apis.yaml
 ```
 
 ## Testing
@@ -30,10 +36,10 @@ Run the tests with:
 
 ```bash
 # Run all tests
-go test -v ./...
+./run.sh test
 
-# Or use the provided script
-./run_tests.sh
+# Run tests for a specific package
+./run.sh test ./config
 ```
 
 ## Configuration Format
@@ -86,7 +92,7 @@ To use with Claude Desktop, add the following to your `claude_desktop_config.jso
 {
   "mcpServers": {
     "api-wrapper": {
-      "command": "path/to/api_wrapper",
+      "command": "path/to/bin/api_wrapper",
       "args": ["path/to/your-config.yaml"],
       "env": {
         "API_GATEWAY_TOKEN": "your-api-token"

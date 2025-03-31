@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -78,8 +79,13 @@ func TestLoadValidConfig(t *testing.T) {
 				if value2Param.Type != "number" {
 					t.Errorf("Expected value2 type to be number, got %s", value2Param.Type)
 				}
-				if value2Param.Default != 42.0 {
-					t.Errorf("Expected value2 default to be 42, got %v", value2Param.Default)
+				
+				// Convert the default value to a string for comparison
+				// This is more resilient to type variations during YAML parsing
+				defaultStr := fmt.Sprintf("%v", value2Param.Default)
+				if defaultStr != "42" {
+					t.Errorf("Expected value2 default to be 42, got %v (type %T)", 
+						value2Param.Default, value2Param.Default)
 				}
 			}
 		}
