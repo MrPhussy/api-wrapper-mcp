@@ -81,6 +81,16 @@ func (h *APIToolHandler) executeAPICall(ctx context.Context, toolCfg *config.Too
 		req.Header.Set("Authorization", "Bearer "+apiToken)
 	}
 
+	// Set custom headers
+	for key, val := range toolCfg.Headers {
+		// Process template in header value
+		headerVal, err := h.processTemplate(val, args)
+		if err != nil {
+			return "", fmt.Errorf("failed to process header '%s': %w", key, err)
+		}
+		req.Header.Set(key, headerVal)
+	}
+
 	// Execute the request
 	resp, err := client.Do(req)
 	if err != nil {
@@ -105,6 +115,23 @@ func (h *APIToolHandler) executeAPICall(ctx context.Context, toolCfg *config.Too
 
 // processTemplate processes a template string with the given arguments
 func (h *APIToolHandler) processTemplate(tmplStr string, args map[string]interface{}) (string, error) {
+	// Handle {{env:VAR}} in the template string directly
+	for {
+		start := strings.Index(tmplStr, "{{env:")
+		if start == -1 {
+			break
+		}
+		end := strings.Index(tmplStr[start:], "}}")
+		if end == -1 {
+			break
+		}
+		end += start
+
+		envVar := tmplStr[start+6 : end]
+		envVal := os.Getenv(envVar)
+		tmplStr = tmplStr[:start] + envVal + tmplStr[end+2:]
+	}
+
 	// Simple template processor for {{variable}} replacement
 	tmpl, err := template.New("").Delims("{{", "}}").Parse(tmplStr)
 	if err != nil {

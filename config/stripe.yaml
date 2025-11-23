@@ -1,0 +1,44 @@
+# Stripe API Configuration
+server:
+  name: "Stripe MCP"
+  description: "MCP server for Stripe API"
+  version: "1.0.0"
+
+auth:
+  token_env_var: "STRIPE_API_KEY"
+
+tools:
+  - name: "stripe-list-customers"
+    description: "List customers in Stripe"
+    endpoint: "https://api.stripe.com/v1/customers"
+    method: "GET"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:STRIPE_API_KEY}}"
+    query_params:
+      limit: "{{limit}}"
+      email: "{{email}}"
+    parameters:
+      limit:
+        type: "number"
+        description: "Number of customers to return"
+        default: 10
+      email:
+        type: "string"
+        description: "Filter by email address"
+        required: false
+
+  - name: "stripe-list-charges"
+    description: "List charges (payments)"
+    endpoint: "https://api.stripe.com/v1/charges"
+    method: "GET"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:STRIPE_API_KEY}}"
+    query_params:
+      limit: "{{limit}}"
+    parameters:
+      limit:
+        type: "number"
+        description: "Number of charges to return"
+        default: 10

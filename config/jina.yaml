@@ -1,0 +1,23 @@
+# Jina Reader (Web Scraper) Configuration
+server:
+  name: "Web Scraper MCP"
+  description: "Convert any URL to LLM-friendly text using Jina Reader"
+  version: "1.0.0"
+
+auth:
+  token_env_var: "JINA_API_KEY" # Optional for free tier, but good practice
+
+tools:
+  - name: "read-url"
+    description: "Scrape a URL and return clean markdown content"
+    endpoint: "https://r.jina.ai/{{url}}"
+    method: "GET"
+    timeout: 60
+    headers:
+      Authorization: "Bearer {{env:JINA_API_KEY}}" # Optional
+      X-With-Generated-Alt: "true"
+    parameters:
+      url:
+        type: "string"
+        description: "The URL to scrape"
+        required: true

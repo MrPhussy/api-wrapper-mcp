@@ -1,0 +1,42 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches:
+      - 'client/*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+        
+      - name: Deploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          # Extract service name from branch (e.g., client/foo -> foo)
+          SERVICE_NAME=$(echo ${GITHUB_REF#refs/heads/client/})
+          
+          # Determine config file
+          if [ -f config/openapi.json ]; then
+            CONFIG_FILE="config/openapi.json"
+          elif [ -f config/client_config.yaml ]; then
+            CONFIG_FILE="config/client_config.yaml"
+          else
+            CONFIG_FILE="config/example-config.yaml"
+          fi
+          
+          echo "Deploying service: $SERVICE_NAME with config: $CONFIG_FILE"
+          
+          # Deploy using Railway CLI
+          # Note: This assumes the project is already linked or the token is sufficient.
+          # If the service does not exist, Railway might create it or error depending on project settings.
+          
+          railway up --service "$SERVICE_NAME" --detach
+          
+          # Update environment variable
+          railway variables --service "$SERVICE_NAME" set CONFIG_FILE_PATH="$CONFIG_FILE"

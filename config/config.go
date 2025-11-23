@@ -30,6 +30,7 @@ type ToolConfig struct {
 	Method      string                 `yaml:"method"`
 	Timeout     int                    `yaml:"timeout"`
 	Template    string                 `yaml:"template"`
+	Headers     map[string]string      `yaml:"headers,omitempty"`
 	QueryParams map[string]string      `yaml:"query_params,omitempty"`
 	Parameters  map[string]ParamConfig `yaml:"parameters"`
 }
