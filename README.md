@@ -84,9 +84,23 @@ To use with Claude Desktop, add the following to your `claude_desktop_config.jso
 }
 ```
 
+## Pre-configured Integrations
+
+The following API integrations are ready to use in the `config/` directory:
+
+- **AnythingLLM** (`config/anythingllm.yaml`) - Knowledge base and RAG system integration
+  - Query workspaces using Retrieval-Augmented Generation
+  - Manage conversation threads
+  - List documents and workspaces
+  - See [config/ANYTHINGLLM_SETUP.md](config/ANYTHINGLLM_SETUP.md) for detailed setup instructions
+
+- **Notion** (`config/notion.yaml`) - Notion workspace integration
+- **Stripe** (`config/stripe.yaml`) - Stripe payment API integration
+- **Jina** (`config/jina.yaml`) - Jina AI integration
+
 ## Examples
 
-Check out `example-config.yaml` for sample API configurations.
+Check out `config/example-config.yaml` for sample API configurations.
 
 ## Environment Variables
 

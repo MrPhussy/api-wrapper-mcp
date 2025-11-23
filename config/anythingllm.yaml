@@ -1,0 +1,180 @@
+# AnythingLLM API Configuration
+# Knowledge base and RAG (Retrieval-Augmented Generation) system
+server:
+  name: "AnythingLLM MCP"
+  description: "MCP server for interacting with AnythingLLM knowledge base and workspaces"
+  version: "1.0.0"
+
+auth:
+  token_env_var: "ANYTHINGLLM_API_KEY"
+
+tools:
+  - name: "anythingllm-query-workspace"
+    description: "Query a workspace's knowledge base using RAG (Retrieval-Augmented Generation). Use 'query' mode to search embedded documents for accurate, context-based answers."
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}/chat"
+    method: "POST"
+    timeout: 60
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+      Content-Type: "application/json"
+    template: |
+      {
+        "message": "{{.message}}",
+        "mode": "query"
+      }
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace to query"
+        required: true
+      message:
+        type: "string"
+        description: "The question or query to ask the knowledge base"
+        required: true
+
+  - name: "anythingllm-chat-workspace"
+    description: "Chat with a workspace using general LLM knowledge. Use 'chat' mode for general conversation without strict document retrieval."
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}/chat"
+    method: "POST"
+    timeout: 60
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+      Content-Type: "application/json"
+    template: |
+      {
+        "message": "{{.message}}",
+        "mode": "chat"
+      }
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace"
+        required: true
+      message:
+        type: "string"
+        description: "The message to send to the workspace chat"
+        required: true
+
+  - name: "anythingllm-get-chat-history"
+    description: "Retrieve chat history from a workspace's default thread"
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}/chats"
+    method: "GET"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace"
+        required: true
+
+  - name: "anythingllm-list-workspaces"
+    description: "List all available workspaces in the AnythingLLM instance"
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspaces"
+    method: "GET"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+    parameters: {}
+
+  - name: "anythingllm-get-workspace"
+    description: "Get detailed information about a specific workspace including its configuration and settings"
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}"
+    method: "GET"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace"
+        required: true
+
+  - name: "anythingllm-create-thread"
+    description: "Create a new conversation thread within a workspace for session management"
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}/thread/new"
+    method: "POST"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+      Content-Type: "application/json"
+    template: |
+      {
+        "userId": {{.user_id}},
+        "name": "{{.thread_name}}",
+        "slug": "{{.thread_slug}}"
+      }
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace"
+        required: true
+      user_id:
+        type: "number"
+        description: "User ID associated with the thread"
+        required: true
+      thread_name:
+        type: "string"
+        description: "Human-readable name for the thread"
+        required: true
+      thread_slug:
+        type: "string"
+        description: "Unique slug identifier for the thread"
+        required: true
+
+  - name: "anythingllm-query-thread"
+    description: "Query a specific conversation thread within a workspace using RAG mode"
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}/thread/{{.thread_slug}}/chat"
+    method: "POST"
+    timeout: 60
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+      Content-Type: "application/json"
+    template: |
+      {
+        "message": "{{.message}}",
+        "mode": "query"
+      }
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace"
+        required: true
+      thread_slug:
+        type: "string"
+        description: "The slug identifier of the thread"
+        required: true
+      message:
+        type: "string"
+        description: "The question or query to ask"
+        required: true
+
+  - name: "anythingllm-get-thread-history"
+    description: "Retrieve chat history from a specific thread"
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}/threads/{{.thread_slug}}/chats"
+    method: "GET"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace"
+        required: true
+      thread_slug:
+        type: "string"
+        description: "The slug identifier of the thread"
+        required: true
+
+  - name: "anythingllm-list-documents"
+    description: "List all documents in a workspace"
+    endpoint: "{{env:ANYTHINGLLM_BASE_URL}}/api/v1/workspace/{{.workspace_slug}}/documents"
+    method: "GET"
+    timeout: 30
+    headers:
+      Authorization: "Bearer {{env:ANYTHINGLLM_API_KEY}}"
+    parameters:
+      workspace_slug:
+        type: "string"
+        description: "The slug identifier of the workspace"
+        required: true
